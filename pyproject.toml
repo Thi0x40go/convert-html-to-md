@@ -1,0 +1,10 @@
+[project]
+name = "html-to-md"
+version = "0.1.0"
+description = "A tool to convert HTML to Markdown, useful for web scraping and preparing text for Large Language Models (LLMs). Further improvements will be implemented."
+readme = "README.md"
+requires-python = ">=3.11.9"
+dependencies = [
+    "bs4>=0.0.2",
+    "markdownify>=1.2.0",
+]
