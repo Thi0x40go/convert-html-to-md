@@ -4,6 +4,7 @@ import sys
 import os
 import base64
 import re
+import time
 
 # ------------------ Args ------------------
 if len(sys.argv) < 3:
@@ -35,7 +36,7 @@ def md_custom(html):
     return NoTableConverter().convert(html)
 
 # ------------------ Base64 Image Handler ------------------
-def save_base64_image(data_uri, index):
+def save_base64_image(data_uri, index, run_ts):
     match = re.match(
         r'data:image/([^;]+);base64,(.+)',
         data_uri,
@@ -45,14 +46,13 @@ def save_base64_image(data_uri, index):
         return None
 
     ext, data = match.groups()
-    filename = f"img-{index}.{ext}"
+    filename = f"img-{run_ts}-{index}.{ext}"
     filepath = os.path.join(assets_dir, filename)
 
     with open(filepath, "wb") as f:
         f.write(base64.b64decode(data))
 
-    # Retorna SOMENTE o nome do arquivo (Obsidian)
-    return filename
+    return filename  # só o nome (Obsidian)
 
 # ------------------ HTML → MD ------------------
 def convert_html_file(html_file):
@@ -64,17 +64,17 @@ def convert_html_file(html_file):
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # remover lixo
     for tag in soup(["style", "script"]):
         tag.decompose()
 
     img_index = 1
+    run_ts = int(time.time() * 1000)  # timestamp por arquivo
 
     for img in soup.find_all("img"):
         src = img.get("src", "")
 
         if src.startswith("data:image"):
-            new_src = save_base64_image(src, img_index)
+            new_src = save_base64_image(src, img_index, run_ts)
             if new_src:
                 img["src"] = new_src
                 img_index += 1
@@ -85,7 +85,6 @@ def convert_html_file(html_file):
 
     markdown = md_custom(str(soup))
 
-    # Converter imagens para formato Obsidian ![[img-1.png]]
     markdown = re.sub(
         r'!\[\]\(([^)]+)\)',
         r'![[\1]]',
