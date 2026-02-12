@@ -3,13 +3,17 @@ from markdownify import MarkdownConverter
 import sys
 import os
 
-if len(sys.argv) < 2:
-    print("Uso: python convert.py <arquivo_html_entrada>")
+# ---------- Validação ----------
+if len(sys.argv) < 3:
+    print("Uso: python convert.py <arquivo_ou_pasta_html> <pasta_saida_md>")
     sys.exit(1)
 
-html_file = sys.argv[1]
-md_file = os.path.splitext(os.path.basename(html_file))[0] + ".md"
+input_path = sys.argv[1]
+output_dir = sys.argv[2]
 
+os.makedirs(output_dir, exist_ok=True)
+
+# ---------- Markdown Converter ----------
 class NoTableConverter(MarkdownConverter):
     def convert_table(self, el, text, parent_tags=None):
         return str(el)
@@ -26,18 +30,37 @@ class NoTableConverter(MarkdownConverter):
 def md_custom(html):
     return NoTableConverter().convert(html)
 
-with open(html_file, "r", encoding="utf-8") as f:
-    html = f.read()
+# ---------- Função de conversão ----------
+def convert_html_file(html_file):
+    base_name = os.path.splitext(os.path.basename(html_file))[0]
+    md_file = os.path.join(output_dir, base_name + ".md")
 
-soup = BeautifulSoup(html, "html.parser")
+    with open(html_file, "r", encoding="utf-8") as f:
+        html = f.read()
 
-# remover tags indesejadas
-for tag in soup(["style", "script", "img"]):
-    tag.decompose()
+    soup = BeautifulSoup(html, "html.parser")
 
-markdown = md_custom(str(soup))
+    # remover tags indesejadas
+    for tag in soup(["style", "script", "img"]):
+        tag.decompose()
 
-with open(md_file, "w", encoding="utf-8") as f:
-    f.write(markdown)
+    markdown = md_custom(str(soup))
 
-print(f"Markdown gerado em: {md_file}")
+    with open(md_file, "w", encoding="utf-8") as f:
+        f.write(markdown)
+
+    print(f"✔ Convertido: {html_file} → {md_file}")
+
+# ---------- Processamento ----------
+if os.path.isfile(input_path):
+    convert_html_file(input_path)
+
+elif os.path.isdir(input_path):
+    for root, _, files in os.walk(input_path):
+        for file in files:
+            if file.lower().endswith(".html"):
+                convert_html_file(os.path.join(root, file))
+
+else:
+    print("❌ Caminho inválido")
+    sys.exit(1)
