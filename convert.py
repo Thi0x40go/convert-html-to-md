@@ -8,7 +8,7 @@ import time
 
 # ------------------ Args ------------------
 if len(sys.argv) < 3:
-    print("Uso: python convert.py <arquivo_ou_pasta_html> <pasta_saida_md>")
+    print("Uso: python convert.py <arquivo_ou_pasta_html> <pasta_saida_md>!")
     sys.exit(1)
 
 input_path = sys.argv[1]
