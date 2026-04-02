@@ -68,7 +68,7 @@ def convert_html_file(html_file):
         tag.decompose()
 
     img_index = 1
-    run_ts = int(time.time() * 1000)  # timestamp por arquivo
+    run_ts = int(time.time() * 1000)
 
     for img in soup.find_all("img"):
         src = img.get("src", "")
